@@ -1,0 +1,29 @@
+= Quotesc Database
+Erik Mayrhofer <obyoxar@gmail.com>
+
+== Usage
+=== Build docker image
+[source, bash]
+----
+docker build -t [imagename] .
+----
+
+=== Env file
+Rename `.env.develop` to `.env` and supply the wanted credentials for the database.
+
+Example env file:
+[source, env]
+----
+DB_SUPERUSER=admin
+DB_SUPERUSER_PASSWORD=passme
+DB_PORT=5432
+----
+
+=== Change Password for quoteuser
+[source, psql]
+----
+alter user quotesc with password 'qq';
+----
+
+== Description
+Quotescdb contains a Database `quotesc` with a schema `quotesc` and a user `quotesc`.

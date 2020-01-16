@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - POSTGRES_USER=${DB_SUPERUSER}
+      - POSTGRES_PASSWORD=${DB_SUPERUSER_PASSWORD}
+      - MONIMAN_PASSWORD=${DB_MONIMAN_PASSWORD}
+    ports:
+      - ${DB_PORT}:5432
