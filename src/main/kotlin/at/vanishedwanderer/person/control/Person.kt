@@ -1,6 +1,7 @@
 package at.vanishedwanderer.person.control
 
 import at.vanishedwanderer.AdvancedPanacheRepository
+import io.quarkus.hibernate.orm.panache.Panache
 import io.quarkus.hibernate.orm.panache.PanacheRepository
 import io.quarkus.security.Authenticated
 import io.smallrye.jwt.auth.principal.JWTCallerPrincipal
@@ -43,15 +44,35 @@ class PersonEndpoint() {
 
     @Path("me")
     @Authenticated
+    @GET
     fun getMe(@Context sec: SecurityContext): Response {
         val principal = sec.userPrincipal as JWTCallerPrincipal
-        return Response.ok(principal.subject).build()
+        val person = personDao.forUser(principal)
+        return Response.ok(person).build()
     }
 }
 
 @ApplicationScoped
 class PersonDao() : AdvancedPanacheRepository<Person>, PanacheRepository<Person> {
 
+    @Transactional
+    fun forUser(principal: JWTCallerPrincipal): Person {
+
+        val user = find("subject", principal.subject).singleResultOptional<Person>()
+        return if(user.isEmpty){
+            val newPerson = Person().apply {
+                firstName = principal.claim<String>("given_name").get()
+                lastName = principal.claim<String>("family_name").get()
+                subject = principal.subject
+            }
+            persist(newPerson)
+            flush()
+            refresh(newPerson)
+            newPerson
+        }else{
+            user.get()
+        }
+    }
 }
 
 @Entity
@@ -61,6 +82,7 @@ open class Person(
         public var id: Long? = null) {
 
     open lateinit var firstName: String
+    open var subject: String? = null
     open lateinit var lastName: String
 
 }
