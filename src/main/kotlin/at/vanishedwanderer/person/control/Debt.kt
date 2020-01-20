@@ -2,6 +2,7 @@ package at.vanishedwanderer.person.control
 
 import at.vanishedwanderer.AdvancedPanacheRepository
 import io.quarkus.hibernate.orm.panache.PanacheRepository
+import io.quarkus.security.Authenticated
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 import javax.persistence.*
@@ -29,6 +30,7 @@ class DebtEndpoint() {
 
     @POST
     @Transactional
+    @Authenticated
     fun save(debt: Debt): Response {
         debtDao.persist(debt)
         debtDao.flush()
