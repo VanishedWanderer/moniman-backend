@@ -5,6 +5,8 @@ import io.quarkus.hibernate.orm.panache.Panache
 import io.quarkus.hibernate.orm.panache.PanacheRepository
 import io.quarkus.security.Authenticated
 import io.smallrye.jwt.auth.principal.JWTCallerPrincipal
+import javax.annotation.security.PermitAll
+import javax.annotation.security.RolesAllowed
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 import javax.persistence.Entity
@@ -34,6 +36,7 @@ class PersonEndpoint() {
     }
 
     @POST
+    @PermitAll
     @Transactional
     fun create(person: Person): Response {
         personDao.persist(person)
@@ -41,6 +44,16 @@ class PersonEndpoint() {
         personDao.refresh(person)
         return Response.ok(person).build()
     }
+
+    @GET
+    @Path("/others")
+    @Authenticated
+    fun getOthers(@Context sec: SecurityContext): Response {
+        val principal = sec.userPrincipal as JWTCallerPrincipal
+        val list = personDao.otherThan(principal)
+        return Response.ok(list).build();
+    }
+
 
     @Path("me")
     @Authenticated
@@ -72,6 +85,10 @@ class PersonDao() : AdvancedPanacheRepository<Person>, PanacheRepository<Person>
         }else{
             user.get()
         }
+    }
+
+    fun otherThan(principal: JWTCallerPrincipal): List<Person> {
+        return find("subject is null or subject != ?1", principal.subject).list<Person>()
     }
 }
 
